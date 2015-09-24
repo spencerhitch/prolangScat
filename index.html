@@ -24,12 +24,6 @@
   </head>
 
   <body>
-    <select id="paradigmSelect">
-      <option value="">-</option>
-      <option value="Functional programming">Functional programming</option>
-      <option value="Imperative programming">Imperative programming</option>
-      <option value="Object-oriented programming">Object-oriented programming</option>
-    </select>
 
     <script>
 
@@ -47,8 +41,26 @@
       var y = d3.scale.log();
       var xAxis = d3.svg.axis().scale(x).orient("bottom").tickFormat(d3.format("d"));
       var yAxis = d3.svg.axis().scale(y).orient("left");
+  
+      var computedParadigms = [];
+      var allParadigms = [];
+
+      var paradigmSelect = d3.select("body").append("select").attr("class", "paradigmSelect");
+      paradigmSelect.append("option").attr("value", "")
+                                     .text("-");
+      paradigmSelect.on("change", function() {updateGraph(paradigmSelect.property("value"));} );
+    
+      function setParadigms(data) {
+        computedParadigms = _.map(data, function(d) {return d.paradigms});
+        allParadigms = _.flatten(computedParadigms);
+        allParadigms = _.uniq(allParadigms);
+        paradigmSelect.selectAll("option").data(allParadigms).enter().append("option")
+                                    .attr("value", function(d) {return d;})
+                                    .text(function(d) {return d;});
+      }
 
       function generateGraph() { return d3.json('data.json', function(d0) {
+        setParadigms(d0);
         dataset = d0;
 
         x.domain(d3.extent(dataset, function(d) {return d.year}))
@@ -72,60 +84,67 @@
                                    .attr("font-size", "11px")
                                    .attr("fill", "red");
 
-        svg.append("g").attr("class", "axis")
+        svg.append("g").attr("class", "x axis")
                        .attr("transform", "translate(0," + (height-padding.top) + ")")
                        .call(xAxis);
-        svg.append("g").attr("class", "axis")
+        svg.append("g").attr("class", "y axis")
                        .attr("transform", "translate(" + padding.left + ",0)") 
                        .call(yAxis);
 
 
-      });
-    };
-    generateGraph();
-
-    var paradigmSelect = d3.select("#paradigmSelect");
-    paradigmSelect.on("change", function() {updateGraph(paradigmSelect.property("value"));} );
-
-    function updateGraph(pv) {
-      var updateDataset = [];
-      if (pv == "") {
-        updateDataset = dataset;
-      } else {
-        _.each(dataset, function(d) {
-          if (_.contains(d.paradigms, pv)) {
-            updateDataset.push(d);
-          }
         });
+      };
+      generateGraph();
+
+      function updateGraph(pv) {
+        var updateDataset = [];
+        if (pv == "") {
+          updateDataset = dataset;
+        } else {
+          _.each(dataset, function(d,i) {
+            if (_.contains(computedParadigms[i], pv)) {
+              updateDataset.push(d);
+            }
+          });
+        }
+
+        x.domain(d3.extent(updateDataset, function(d) {return d.year}))
+         .range([padding.left, width- padding.right]);
+        y.domain(d3.extent(updateDataset, function(d) {return d.nbRepos}))
+          .range([height- padding.top, padding.bottom]);
+
+        circles = svg.selectAll("circle").data(updateDataset)
+                                   .attr("cx", function(d) {console.log(d.name); return x(d.year);})
+                                   .attr("cy", function(d) {return y(d.nbRepos)})
+        circles.enter().append("circle")
+                                   .attr("cx", function(d) {return x(d.year);})
+                                   .attr("cy", function(d) {return y(d.nbRepos)})
+                                   .attr("r", 5)
+                                   .attr("fill", "#BBB")
+                                   .attr("stroke", "black");
+        circles.exit().remove();
+
+        texts = svg.selectAll("text").data(updateDataset).text(function(d) {return d.name})
+                                   .attr("x", function(d) {return x(d.year) + 6})
+                                   .attr("y", function(d) {return y(d.nbRepos) - 6})
+        texts.enter().append("text").text(function(d) {return d.name})
+                                   .attr("x", function(d) {return x(d.year) + 6})
+                                   .attr("y", function(d) {return y(d.nbRepos) - 6})
+                                   .attr("font-family", "sans-serif")
+                                   .attr("font-size", "11px")
+                                   .attr("fill", "red");
+        texts.exit().remove();
+
+        svg.select(".x.axis")
+            .transition()
+            .duration(1000)
+            .call(xAxis);
+
+        svg.select(".y.axis")
+            .transition()
+            .duration(1000)
+            .call(yAxis);
       }
-
-      x.domain(d3.extent(updateDataset, function(d) {return d.year}))
-       .range([padding.left, width- padding.right]);
-      y.domain(d3.extent(updateDataset, function(d) {return d.nbRepos}))
-        .range([height- padding.top, padding.bottom]);
-
-      circles = svg.selectAll("circle").data(updateDataset)
-                                 .attr("cx", function(d) {console.log(d.name); return x(d.year);})
-                                 .attr("cy", function(d) {return y(d.nbRepos)})
-      circles.enter().append("circle")
-                                 .attr("cx", function(d) {console.log(d.name); return x(d.year);})
-                                 .attr("cy", function(d) {return y(d.nbRepos)})
-                                 .attr("r", 5)
-                                 .attr("fill", "#BBB")
-                                 .attr("stroke", "black");
-      circles.exit().remove();
-
-      texts = svg.selectAll("text").data(updateDataset)
-                                 .attr("x", function(d) {return x(d.year) + 6})
-                                 .attr("y", function(d) {return y(d.nbRepos) - 6})
-      texts.enter().append("text").text(function(d) {return d.name})
-                                 .attr("x", function(d) {return x(d.year) + 6})
-                                 .attr("y", function(d) {return y(d.nbRepos) - 6})
-                                 .attr("font-family", "sans-serif")
-                                 .attr("font-size", "11px")
-                                 .attr("fill", "red");
-      texts.exit().remove();
-    }
 
 
     </script>
