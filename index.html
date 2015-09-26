@@ -36,8 +36,6 @@
                                                .attr("height", height + margin.top + margin.bottom)
                                                .append("g")
                                                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-      var circles = svg.selectAll("circle");
-      var texts = svg.selectAll("text");
 
       var dataset = [];
       var x = d3.scale.linear();
@@ -51,98 +49,98 @@
       var paradigmSelect = d3.select("body").append("select").attr("class", "paradigmSelect");
       paradigmSelect.append("option").attr("value", "")
                                      .text("-");
-      paradigmSelect.on("change", function() {updateGraph(paradigmSelect.property("value"));} );
+      paradigmSelect.on("change", redraw);
+
+
+      svg.append("g").attr("class", "x axis")
+                     .attr("transform", "translate(0," + (height-padding.top) + ")")
+                     .call(xAxis);
+      svg.append("g").attr("class", "y axis")
+                     .attr("transform", "translate(" + padding.left + ",0)") 
+                     .call(yAxis);
+      
     
-      function setParadigms(data) {
-        computedParadigms = _.map(data, function(d) {return d.paradigms});
+      d3.json('data.json', function(d0) {
+
+        computedParadigms = _.map(d0, function(d) {return d.paradigms});
         allParadigms = _.flatten(computedParadigms);
         allParadigms = _.uniq(allParadigms);
+
         paradigmSelect.selectAll("option").data(allParadigms).enter().append("option")
                                     .attr("value", function(d) {return d;})
                                     .text(function(d) {return d;});
-      }
 
-      function generateGraph() { return d3.json('data.json', function(d0) {
-        setParadigms(d0);
         dataset = d0;
+        redraw();
+      });
 
-        x.domain(d3.extent(dataset, function(d) {return d.year}))
-            .range([padding.left, width- padding.right]);
-        y.domain(d3.extent(dataset, function(d) {return d.nbRepos}))
-            .range([height- padding.top, padding.bottom]);
+      function redraw() {
+        var paradigm = paradigmSelect.property("value");
+        var computedDataset= [];
 
-        circles = circles.data(dataset);
-        circles.enter().append("circle")
-                                   .attr("cx", function(d) {return x(d.year)})
-                                   .attr("cy", function(d) {return y(d.nbRepos)})
-                                   .attr("r", 5)
-                                   .attr("fill", "#BBB")
-                                   .attr("stroke", "black");
-
-        texts = texts.data(dataset);
-        texts.enter().append("text").text(function(d) {return d.name})
-                                   .attr("x", function(d) {return x(d.year) + 6})
-                                   .attr("y", function(d) {return y(d.nbRepos) - 6})
-                                   .attr("font-family", "sans-serif")
-                                   .attr("font-size", "11px")
-                                   .attr("fill", "red");
-
-        svg.append("g").attr("class", "x axis")
-                       .attr("transform", "translate(0," + (height-padding.top) + ")")
-                       .call(xAxis);
-        svg.append("g").attr("class", "y axis")
-                       .attr("transform", "translate(" + padding.left + ",0)") 
-                       .call(yAxis);
-
-
-        });
-      };
-      generateGraph();
-
-      function updateGraph(paradigm) {
-        var updateDataset = [];
         if (paradigm == "") {
-          updateDataset = dataset;
+          computedDataset = dataset;
         } else {
           _.each(dataset, function(d,i) {
             if (_.contains(computedParadigms[i], paradigm)) {
-              updateDataset.push(d);
+              computedDataset.push(d);
             }
           });
         }
 
-        x.domain(d3.extent(updateDataset, function(d) {return d.year}))
-         .range([padding.left, width- padding.right]);
-        y.domain(d3.extent(updateDataset, function(d) {return d.nbRepos}))
+        x.domain(d3.extent(computedDataset, function(d) {return d.year}))
+          .range([padding.left, width- padding.right]);
+        y.domain(d3.extent(computedDataset, function(d) {return d.nbRepos}))
           .range([height- padding.top, padding.bottom]);
 
-        circles = circles.data(updateDataset)
-                                   .attr("cx", function(d) {return x(d.year)})
-                                   .attr("cy", function(d) {return y(d.nbRepos)})
-        console.log(updateDataset.length);
-        console.log(circles.enter()[0].length);
-        console.log(circles.exit()[0].length);
-        circles.enter().append("circle")
-                                   .attr("cx", function(d) {return x(d.year);})
-                                   .attr("cy", function(d) {return y(d.nbRepos)})
-                                   .attr("r", 5)
-                                   .attr("fill", "#BBB")
-                                   .attr("stroke", "black");
-        circles.exit().remove();
+        var language = svg.selectAll(".language").data(computedDataset, function(d) { return d.name });
+        console.log(computedDataset.length);
+        console.log(language.enter().length);
+        console.log(language.exit().length);
+        var languageEnter = language.enter().insert("g", ".axis")
+          .attr("class", ".language")
+          .attr("transform", function(d) { return "translate(" + x(d.year) + "," +  y(d.nbRepos) + ")";})
+          .style("fill-opacity",0);
+        languageEnter.append("circle")
+          .attr("r", 5)
+          .attr("fill", "#BBB")
+          .attr("stroke", "black");
+        languageEnter.append("text")
+          .attr("font-family", "sans-serif")
+          .attr("font-size", "11px")
+          .attr("fill", "red")
+          .attr("x", 6)
+          .attr("y", -6)
+          .text(function(d) {return d.name});
+        language.transition()
+          .attr("transform", function(d) { return "translate(" + x(d.year) + "," +  y(d.nbRepos) + ")";})
+          .style("fill-opacity", 1);
+        language.exit().transition()
+          .duration(500)
+          .attr("transform", function(d) { return "translate(" + x(d.year) + "," +  y(d.nbRepos) + ")";})
+          .style("fill-opacity", 0)
+          .remove();
+          
 
-        texts = texts.data(updateDataset).text(function(d) {return d.name})
-                                   .attr("x", function(d) {return x(d.year) + 6})
-                                   .attr("y", function(d) {return y(d.nbRepos) - 6})
-        console.log(updateDataset.length);
-        console.log(texts.enter()[0].length);
-        console.log(texts.exit()[0].length);
-        texts.enter().append("text").text(function(d) {return d.name})
-                                   .attr("x", function(d) {return x(d.year) + 6})
-                                   .attr("y", function(d) {return y(d.nbRepos) - 6})
-                                   .attr("font-family", "sans-serif")
-                                   .attr("font-size", "11px")
-                                   .attr("fill", "red");
-        texts.exit().remove();
+//        circles.exit().transition().duration(500).attr("r","0").remove();
+//        circles.enter().append("circle")
+//          .attr("r", 5)
+//          .attr("fill", "#BBB")
+//          .attr("stroke", "black");
+//        circles
+//          .attr("cx", function(d) {return x(d.year)})
+//          .attr("cy", function(d) {return y(d.nbRepos)});
+//
+//        texts = texts.data(computedDataset, function(d) { return d.name });
+//        texts.exit().transition().duration(500).attr("font-size","0").remove();
+//        texts.enter().append("text")
+//          .attr("font-family", "sans-serif")
+//          .attr("font-size", "11px")
+//          .attr("fill", "red");
+//        texts
+//          .text(function(d) {return d.name})
+//          .attr("x", function(d) {return x(d.year) + 6})
+//          .attr("y", function(d) {return y(d.nbRepos) - 6});
 
         svg.select(".x.axis")
             .transition()
