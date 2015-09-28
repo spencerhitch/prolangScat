@@ -1,6 +1,6 @@
 [
    {
-      "name":"C++",
+      "name":"Cplusplus",
       "year":1983,
       "paradigms":[
          "Object-oriented programming",
@@ -11,7 +11,7 @@
       ],
       "influenced":[
          "D",
-         "C#",
+         "Csharp",
          "Dylan",
          "Perl",
          "PHP",
@@ -50,7 +50,7 @@
       ],
       "influenced":[
          "PHP",
-         "C++",
+         "Cplusplus",
          "LPC",
          "Perl",
          "Vala",
@@ -61,7 +61,7 @@
          "JavaScript",
          "Limbo programming language",
          "D",
-         "C#",
+         "Csharp",
          "MOO programming language",
          "SISAL",
          "Pike programming language",
@@ -180,7 +180,7 @@
          "D",
          "Ruby",
          "Sather",
-         "C#",
+         "Csharp",
          "Cobra",
          "Lisaac",
          "Spec sharp",
@@ -206,7 +206,7 @@
       "nbRepos":114384
    },
    {
-      "name":"C#",
+      "name":"Csharp",
       "year":2000,
       "paradigms":[
          "Object-oriented programming",
@@ -221,7 +221,7 @@
          "Vala",
          "D",
          "PHP",
-         "F#",
+         "Fsharp",
          "Nemerle",
          "Windows PowerShell",
          "Cobra",
@@ -237,7 +237,7 @@
       "nbRepos":32170
    },
    {
-      "name":"Common Lisp",
+      "name":"Lisp",
       "year":1984,
       "paradigms":[
          "Functional programming",
@@ -272,7 +272,7 @@
          "Procedural programming"
       ],
       "influenced":[
-         "Common Lisp",
+         "Lisp",
          "Lua",
          "Dylan",
          "Ruby",
@@ -472,7 +472,7 @@
          "Cobra",
          "Go",
          "Io",
-         "F#"
+         "Fsharp"
       ],
       "nbRepos":95002
    },
@@ -517,10 +517,10 @@
          "Perl 6",
          "Epigram programming language",
          "Cayenne programming language",
-         "F#",
+         "Fsharp",
          "Curry programming language",
          "Factor",
-         "C#",
+         "Csharp",
          "Cat",
          "Fortress programming language",
          "Quark Framework",
@@ -635,7 +635,7 @@
       "nbRepos":121
    },
    {
-      "name":"Standard ML",
+      "name":"ML",
       "year":1984,
       "paradigms":[
          "Functional programming",
@@ -644,7 +644,7 @@
       ],
       "influenced":[
          "Scala",
-         "Standard ML of New Jersey"
+         "ML of New Jersey"
       ],
       "nbRepos":139
    },
@@ -798,7 +798,7 @@
       "nbRepos":321
    },
    {
-      "name":"F#",
+      "name":"Fsharp",
       "year":2005,
       "paradigms":[
          "Functional programming",
@@ -906,7 +906,7 @@
          "Scala",
          "QUILL",
          "Yoix",
-         "C#",
+         "Csharp",
          "ABAP",
          "NetRexx",
          "UnrealScript",

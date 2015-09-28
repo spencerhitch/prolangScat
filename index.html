@@ -44,6 +44,8 @@
       var yAxis = d3.svg.axis().scale(y).orient("left");
   
       var computedParadigms = [];
+      var computedInfluenced = [];
+      var computedNames = [];
       var allParadigms = [];
 
       var paradigmSelect = d3.select("body").append("select").attr("class", "paradigmSelect");
@@ -63,6 +65,22 @@
       d3.json('data.json', function(d0) {
 
         computedParadigms = _.map(d0, function(d) {return d.paradigms});
+        computedInfluenced = _.map(d0, function(d) {
+          return d.influenced;
+        });
+        computedNames = _.map(d0, function(d) {
+          return d.name;
+        });
+        _.each(computedInfluenced, function(d,i){
+          computedInfluenced[i] = _.map(d, function(d1){
+            var index = _.indexOf(computedNames, d1)
+            if (index != -1) {
+              var datum = d0[index];
+              return [datum.year, datum.nbRepos];
+            }
+              return null;
+          });
+        });
         allParadigms = _.flatten(computedParadigms);
         allParadigms = _.uniq(allParadigms);
 
@@ -77,6 +95,7 @@
       function redraw() {
         var paradigm = paradigmSelect.property("value");
         var computedDataset= [];
+        var computedYearRepoMap = [];
 
         if (paradigm == "") {
           computedDataset = dataset;
@@ -87,6 +106,7 @@
             }
           });
         }
+        computedYearRepoMap= _.map(computedDataset, function(d){ return [d.year,d.nbRepos]; });
 
         x.domain(d3.extent(computedDataset, function(d) {return d.year}))
           .range([padding.left, width- padding.right]);
@@ -97,7 +117,6 @@
         language.exit()
           .transition()
           .duration(500)
-          .attr("transform", function(d) { return "translate(" + x(d.year) + "," +  y(d.nbRepos) + ")";})
           .style("fill-opacity", 0)
           .remove();
         var languageEnter = language.enter().insert("g", ".axis")
@@ -107,7 +126,15 @@
         languageEnter.append("circle")
           .attr("r", 5)
           .attr("fill", "#BBB")
-          .attr("stroke", "black");
+          .attr("stroke", "black")
+          .on("mouseover",function() {
+            d3.select(this).attr("fill","red")
+            d3.select(this.parentNode).selectAll(".lineGroup").attr("display","inherit");
+          })
+          .on("mouseout",function() {
+            d3.select(this).attr("fill","#BBB")
+            d3.select(this.parentNode).selectAll(".lineGroup").attr("display","none");
+          });
         languageEnter.append("text")
           .attr("font-family", "sans-serif")
           .attr("font-size", "11px")
@@ -115,9 +142,36 @@
           .attr("x", 6)
           .attr("y", -6)
           .text(function(d) {return d.name});
+
+        languageEnter.append("g")
+          .attr("class", function(d) {
+            return d.name + " lineGroup";
+          })
+          .attr("display", "none");
+
+        console.log(computedYearRepoMap);
+        _.each(computedDataset, function(d) {
+          var lineGroup = svg.select("." + d.name + ".lineGroup");
+          lineGroup.selectAll("line").remove();
+          var index = _.indexOf(computedNames, d.name);
+          _.each(computedInfluenced[index], function(d0) {
+            if (d0 != null){ //&& _.contains(computedYearRepoMap, d0)){
+              lineGroup.append("line")
+                .attr("x1", 0)
+                .attr("y1", 0)
+                .attr("x2", x(d0[0]) - x(d.year) )
+                .attr("y2", y(d0[1]) - y(d.nbRepos) )
+                .attr("stroke", "black")
+                .attr("stroke-width", "0.5px");
+            }
+          });
+        });
+
         language.transition()
           .attr("transform", function(d) { return "translate(" + x(d.year) + "," +  y(d.nbRepos) + ")";})
           .style("fill-opacity", 1);
+        
+        
           
         svg.select(".x.axis")
             .transition()
